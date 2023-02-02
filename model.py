@@ -27,6 +27,19 @@ class Tune():
         self.model = model
 
     def tune(self, ranks, regparams, metric, labelcol, predictioncol):
+        """finetune model
+
+        Args:
+            ranks (array): rank range
+            regparams (array): regparam range
+            metric (string): accuracy metric
+            labelcol (string): label column
+            predictioncol (string): target column
+
+        Returns:
+            Any: evaluate model
+            Array: param_grid
+        """        
         param_grid = ParamGridBuilder() \
                     .addGrid(self.model.rank, ranks) \
                     .addGrid(ranks.regParam, regparams) \
@@ -40,6 +53,11 @@ class Tune():
 
         
     def best_model(self):
+        """select best model
+
+        Returns:
+            object: best model
+        """        
         best_model = self.model.bestModel
 
         print(type(best_model))

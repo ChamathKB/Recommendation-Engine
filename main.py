@@ -7,6 +7,8 @@ from pyspark.ml.recommendation import ALS
 from pyspark.ml.tuning import ParamGridBuilder, CrossValidator
 import pandas as pd
 
+from data_pipeline import sparsity
+
 spark = SparkSession.builder.appName('Recommendation').getOrCreate()
 sc = SparkContext
 
@@ -24,17 +26,6 @@ ratings = ratings.withColumn('userId', col('userId').cast('integer')).\
 
 # ratings.show()
 
-def sparsity(data):        
-    numerator = data.select('rating').count()
-
-    num_users = data.select('userId').distinct().count()
-    num_movies = data.select('movieId').distinct().count()
-
-    denominator = num_movies * num_users
-
-    sparsity = (1.0 - (numerator * 1.0)/denominator) * 100
-
-    return print("The rating dataframe is ", "%.2f" % sparsity + "% empty.")
 
 sparsity(ratings)
 
