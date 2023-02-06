@@ -13,6 +13,11 @@ class Model():
         self.data = data
 
     def model(self):
+        """create pyspark model
+
+        Returns:
+            Any: train, test data and als model
+        """        
         train, test = self.data.randomSplit([0.8, 0.2], seed=1)
 
         als = ALS(userCol='userId',
@@ -21,6 +26,26 @@ class Model():
                 nonnegative=True, implicitPrefs=False, coldStartStrategy='drop')
 
         return train, test, als
+        
+    def predict(model, data, evaluator):
+        """predict from trained model
+
+        Args:
+            model (object): model use for prediction
+            data (dataframe): test data
+            evaluator (object): evaluator
+
+        Returns:
+            string: RMSE
+            list: test prediciton
+        """        
+        test_predictions = model.transform(data)
+
+        RMSE = evaluator.evaluate(test_predictions)
+
+        print(RMSE)
+
+        return test_predictions, RMSE
 
 class Tune():
     def __init__(self, model):
@@ -71,3 +96,27 @@ class Tune():
         print("  RegParam: ", best_model._java_obj.parent().getRegParam())
 
         return best_model
+
+class Utils():
+
+    def sparsity(data):
+        """calculate sparsity
+
+        Args:
+            data (_type_): dataset for train/test model
+
+        Returns:
+            float: sparsity value
+        """            
+        numerator = data.select('rating').count()
+
+        num_users = data.select('userId').distinct().count()
+        num_movies = data.select('movieId').distinct().count()
+
+        denominator = num_movies * num_users
+
+        sparsity = (1.0 - (numerator * 1.0)/denominator) * 100
+
+        print("The rating dataframe is ", "%.2f" % sparsity + "% empty.")
+
+        return sparsity

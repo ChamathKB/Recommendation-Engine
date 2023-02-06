@@ -7,7 +7,7 @@ from pyspark.ml.recommendation import ALS
 from pyspark.ml.tuning import ParamGridBuilder, CrossValidator
 import pandas as pd
 
-from data_pipeline import sparsity
+from model import Model, Tune, Utils
 
 spark = SparkSession.builder.appName('Recommendation').getOrCreate()
 sc = SparkContext
@@ -27,45 +27,17 @@ ratings = ratings.withColumn('userId', col('userId').cast('integer')).\
 # ratings.show()
 
 
-sparsity(ratings)
-
-
-# userId_ratings = ratings.groupBy('userId').count().orderBy('count', ascending=False)
-# userId_ratings.show()
-
-# movieId_ratings = ratings.groupBy('movieId').count().orderBy('count', ascending=False)
-# movieId_ratings.show()
-
-def model(data):
-    train, test = data.randomSplit([0.8, 0.2], seed=1)
-
-    als = ALS(userCol='userId',
-            itemCol='movieId',
-            ratingCol='rating',
-            nonnegative=True, implicitPrefs=False, coldStartStrategy='drop')
-
-    return train, test, als
+sparsity = Utils.sparsity(ratings)
 
 # type(als)
 
-train, test, als = model(ratings)
+train, test, als = Model.model(ratings)
 
-def tune(model, ranks, regparams, metric, labelcol, predictioncol):
-    param_grid = ParamGridBuilder() \
-                .addGrid(model.rank, ranks) \
-                .addGrid(ranks.regParam, regparams) \
-                .build()
-
-    evaluator = RegressionEvaluator(metricName=metric, labelCol=labelcol, predictionCol=predictioncol)
-
-    print("Number of models to test: ", len(param_grid))
-
-    return evaluator, param_grid
 
 ranks = [10, 50, 100, 150]
 regparams = [.01, .05, .1, .15]
 
-evaluator, param_grid  = tune(als, ranks, regparams, 'rmse', 'ratings', 'prediction')
+evaluator, param_grid  = Tune.tune(als, ranks, regparams, 'rmse', 'ratings', 'prediction')
 
 cv = CrossValidator(estimator=als,
                     estimatorParamMaps=param_grid,
@@ -76,37 +48,10 @@ print(cv)
 
 model = cv.fit(train)
 
-def best_model(model):
-    best_model = model.bestModel
 
-    print(type(best_model))
+best_model = Model.best_model(model)
 
-    print("Best model ->")
-
-    print("  Rank: ", best_model._java_obj.parent().getRank())
-
-    print("  MaxIter: ", best_model._java_obj.parent().getMaxIter())
-
-    print("  RegParam: ", best_model._java_obj.parent().getRegParam())
-
-    return best_model
-
-
-
-best_model = best_model(model)
-
-def predict(model, data, evaluator):
-    test_predictions = model.transform(data)
-
-    RMSE = evaluator.evaluate(test_predictions)
-
-    print(RMSE)
-
-    # test_predictions.show()
-
-    return test_predictions, RMSE
-
-predict(best_model, test, evaluator)
+prediction = Model.predict(best_model, test, evaluator)
 
 
 n_recommendations = best_model.recommendForAllUsers(10)
