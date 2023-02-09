@@ -1,5 +1,5 @@
 from pyspark.ml.evaluation import RegressionEvaluator
-from pyspark.ml.recommendation import ALS
+from pyspark.ml.recommendation import ALS, ALSModel
 from pyspark.ml.tuning import ParamGridBuilder
 
 
@@ -8,7 +8,7 @@ class Model():
     def __init__(self, data):
         self.data = data
 
-    def model(self):
+    def build_model(self):
         """create pyspark model
 
         Returns:
@@ -42,6 +42,29 @@ class Model():
         print(RMSE)
 
         return test_predictions, RMSE
+
+    def save_model(self, model):
+        """save trained model
+
+        Args:
+            model (object): trained model
+
+        Returns:
+            object: save model
+        """        
+        return model.write().save("als_model")
+
+    def load_model(self, path):
+        """load saved model
+
+        Args:
+            path (object): model path
+
+        Returns:
+            object: loaded model
+        """        
+        savedModel = ALSModel.load(path)
+        return savedModel
 
 class Tune():
     def __init__(self, model):

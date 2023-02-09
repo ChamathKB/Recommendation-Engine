@@ -27,7 +27,9 @@ sparsity = Utils.sparsity(ratings)
 
 # type(als)
 
-train, test, als = Model.model(ratings)
+model = Model(ratings)
+
+train, test, als = model.build_model()
 
 
 ranks = [10, 50, 100, 150]
@@ -49,6 +51,7 @@ best_model = Model.best_model(model)
 
 prediction = Model.predict(best_model, test, evaluator)
 
+Model.save_model(best_model)
 
 n_recommendations = best_model.recommendForAllUsers(10)
 n_recommendations.limit(10).show()
