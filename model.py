@@ -1,10 +1,6 @@
-from pyspark.sql import SparkSession
-from pyspark import SparkContext
-from pyspark.sql.functions import col, explode
-
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.recommendation import ALS
-from pyspark.ml.tuning import ParamGridBuilder, CrossValidator
+from pyspark.ml.tuning import ParamGridBuilder
 
 
 class Model():
