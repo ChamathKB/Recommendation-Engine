@@ -5,7 +5,7 @@ import producer
 
 model_path = '/model/model'
 
-best_model = Model.load_model(model_path)
+best_model = Model.load_model('model/ALS_model/bestModel')
 
 # als = ALS(userCol='userId',
 #                 itemCol='movieId',
