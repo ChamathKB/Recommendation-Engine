@@ -59,7 +59,7 @@ n_recommendations.limit(10).show()
 n_recommendations = n_recommendations.withColumn('rec_exp', explode('recommendations')) \
                                      .select('userId', col('rec_exp.movieId'), col("rec_exp.rating"))
 
-n_recommendations.limits(10).show()
+n_recommendations.limit(10).show()
 
 n_recommendations.join(movies, on='movieId').filter('userId = 100').show()
 

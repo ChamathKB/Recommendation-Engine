@@ -3,7 +3,6 @@ from model import Model, Tune
 import consumer
 import producer
 
-model_path = '/model/model'
 
 best_model = Model.load_model('model/ALS_model/bestModel')
 
